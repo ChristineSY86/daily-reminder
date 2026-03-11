@@ -139,6 +139,8 @@ export default function App() {
           box-shadow: 0 6px 20px rgba(193,122,58,0.45);
           display: flex; align-items: center; justify-content: center;
           z-index: 100; transition: transform 0.3s ease;
+          line-height: 1; padding: 0 0 2px 0;
+          font-family: -apple-system, sans-serif; font-weight: 300;
         }
         @media (min-width: 600px) {
           .main-wrap { max-width: 480px; margin: 0 auto; }
@@ -331,7 +333,10 @@ export default function App() {
         {/* FAB */}
         <button className="fab" style={{ transform: showForm ? "rotate(45deg)" : "rotate(0deg)" }}
           onClick={showForm ? closeForm : openForm}>
-          +
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+            <line x1="11" y1="2" x2="11" y2="20" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
+            <line x1="2" y1="11" x2="20" y2="11" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
+          </svg>
         </button>
       </div>
     </>
