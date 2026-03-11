@@ -21,7 +21,14 @@ const REPEATS = [
   { id: "weekday", label: "工作日" },
   { id: "weekend", label: "周末" },
   { id: "once", label: "仅一次" },
+  { id: "custom", label: "指定日期" },
 ];
+
+const formatCustomDate = (dateStr) => {
+  if (!dateStr) return "";
+  const d = new Date(dateStr + "T00:00:00");
+  return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
+};
 
 const FILTERS = [
   { id: "all", label: "全部" },
@@ -42,7 +49,7 @@ export default function App() {
   });
   const [showForm, setShowForm] = useState(false);
   const [filter, setFilter] = useState("all");
-  const [form, setForm] = useState({ title: "", time: "09:00", category: "work", repeat: "daily", note: "" });
+  const [form, setForm] = useState({ title: "", time: "09:00", category: "work", repeat: "daily", note: "", customDate: "" });
   const [editId, setEditId] = useState(null);
   const [animatingId, setAnimatingId] = useState(null);
   const formRef = useRef(null);
@@ -54,13 +61,14 @@ export default function App() {
 
   const handleSubmit = () => {
     if (!form.title.trim()) return;
+    if (form.repeat === "custom" && !form.customDate) return;
     if (editId) {
       setReminders((prev) => prev.map((r) => (r.id === editId ? { ...r, ...form } : r)));
       setEditId(null);
     } else {
       setReminders((prev) => [{ id: Date.now(), ...form, done: false, createdAt: getToday() }, ...prev]);
     }
-    setForm({ title: "", time: "09:00", category: "work", repeat: "daily", note: "" });
+    setForm({ title: "", time: "09:00", category: "work", repeat: "daily", note: "", customDate: "" });
     setShowForm(false);
   };
 
@@ -73,7 +81,7 @@ export default function App() {
   const deleteReminder = (id) => setReminders((prev) => prev.filter((r) => r.id !== id));
 
   const startEdit = (r) => {
-    setForm({ title: r.title, time: r.time, category: r.category, repeat: r.repeat, note: r.note || "" });
+    setForm({ title: r.title, time: r.time, category: r.category, repeat: r.repeat, note: r.note || "", customDate: r.customDate || "" });
     setEditId(r.id);
     setShowForm(true);
     setTimeout(() => {
@@ -82,7 +90,7 @@ export default function App() {
   };
 
   const openForm = () => {
-    setForm({ title: "", time: "09:00", category: "work", repeat: "daily", note: "" });
+    setForm({ title: "", time: "09:00", category: "work", repeat: "daily", note: "", customDate: "" });
     setEditId(null);
     setShowForm(true);
     setTimeout(() => {
@@ -219,8 +227,14 @@ export default function App() {
                     </div>
                     <div style={{ display: "flex", gap: 10, marginTop: 5, flexWrap: "wrap" }}>
                       <span style={{ fontSize: 12, color: "#9C8570", fontFamily: "sans-serif" }}>🕐 {r.time}</span>
-                      <span style={{ fontSize: 12, color: "#9C8570", fontFamily: "sans-serif" }}>🔁 {REPEATS.find(rep => rep.id === r.repeat)?.label}</span>
-                      <span style={{ fontSize: 12, color: "#9C8570", fontFamily: "sans-serif" }}>📅 {formatDate(r.createdAt)}</span>
+                      <span style={{ fontSize: 12, color: "#9C8570", fontFamily: "sans-serif" }}>
+                        {r.repeat === "custom"
+                          ? `📆 ${formatCustomDate(r.customDate)}`
+                          : `🔁 ${REPEATS.find(rep => rep.id === r.repeat)?.label}`}
+                      </span>
+                      {r.repeat !== "custom" && (
+                        <span style={{ fontSize: 12, color: "#9C8570", fontFamily: "sans-serif" }}>📅 {formatDate(r.createdAt)}</span>
+                      )}
                     </div>
                     {r.note && (
                       <div style={{ marginTop: 6, fontSize: 13, color: "#8B7355", background: "#F5EFE6", padding: "5px 10px", borderRadius: 8, fontStyle: "italic" }}>
@@ -262,6 +276,18 @@ export default function App() {
                     {REPEATS.map((r) => <option key={r.id} value={r.id}>{r.label}</option>)}
                   </select>
                 </div>
+
+                {form.repeat === "custom" && (
+                  <div style={{ marginTop: 12 }}>
+                    <div style={labelStyle}>指定日期</div>
+                    <input type="date" style={inputStyle} value={form.customDate}
+                      min={getToday()}
+                      onChange={(e) => setForm({ ...form, customDate: e.target.value })} />
+                    {!form.customDate && (
+                      <div style={{ fontSize: 12, color: "#B05A7A", marginTop: 4, fontFamily: "sans-serif" }}>请选择一个日期</div>
+                    )}
+                  </div>
+                )}
 
                 <div style={{ marginTop: 12 }}>
                   <div style={labelStyle}>分类</div>
